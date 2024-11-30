@@ -30,3 +30,4 @@ describe('Object properties', () => {
     });
 });
 
+// Run the tests
