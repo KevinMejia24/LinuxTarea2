@@ -1,0 +1,61 @@
+name: Deployment
+ 
+on:
+  push:
+    branches: ["main"]
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    name: Run tests
+    steps:
+      - name: Check the source code
+        uses: actions/checkout@v3
+ 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+ 
+      - name: Install dependencies
+        run: npm install
+ 
+      - name: Execute tests
+        run: npm run tests
+ 
+  build_and_push_image:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+ 
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DH_USERNAME }}
+          password: ${{ secrets.DH_PASSWORD }}
+ 
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DH_USERNAME }}/tarealinux:latest
+ 
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push_image
+    steps:
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.OVH_IP }}
+          username: ${{ secrets.OVH_USERNAME }}
+          password: ${{ secrets.OVH_PASSWORD }}
+          script: |
+            docker login -u ${{ secrets.DH_USERNAME }} -p ${{ secrets.DH_PASSWORD }}            
+            docker pull ${{ secrets.DH_USERNAME }}/tarealinux:latest
+            docker stop tarealinux || true
+            docker rm tarealinux || true
+            docker run -d --name tarealinux --restart always -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/tarealinux:latest 
