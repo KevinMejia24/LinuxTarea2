@@ -46,19 +46,19 @@ jobs:
           tags: ${{ secrets.DH_USERNAME }}/tarealinux:latest
  
   deploy:
-  name: Deploy code
-  runs-on: ubuntu-latest
-  needs: build_and_push_image
-  steps:
-    - name: SSH to deploy server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.OVH_IP }}
-        username: ${{ secrets.OVH_USERNAME }}
-        password: ${{ secrets.OVH_PASSWORD }}
-        script: |
-          docker login -u ${{ secrets.DH_USERNAME }} -p ${{ secrets.DH_PASSWORD }}
-          docker pull ${{ secrets.DH_USERNAME }}/tarealinux:latest
-          docker stop tarealinux || true
-          docker rm tarealinux || true
-          docker run -d --name tarealinux --restart always -p 3000:3000 ${{ secrets.DH_USERNAME }}/tarealinux:latest
+    name: Deploy code
+    runs-on: ubuntu-latest
+    needs: build_and_push_image
+    steps:
+      - name: SSH to deploy server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.OVH_IP }}
+          username: ${{ secrets.OVH_USERNAME }}
+          password: ${{ secrets.OVH_PASSWORD }}
+          script: |
+            docker login -u ${{ secrets.DH_USERNAME }} -p ${{ secrets.DH_PASSWORD }}
+            docker pull ${{ secrets.DH_USERNAME }}/tarealinux:latest
+            docker stop tarealinux || true
+            docker rm tarealinux || true
+            docker run -d --name tarealinux --restart always -p 3000:3000 ${{ secrets.DH_USERNAME }}/tarealinux:latest
