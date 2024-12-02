@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 describe('Math operations', () => {
     it('Debe sumar correctamente dos números', () => {
-        const result = 2 + 2;
+        const result = 2 + 3;
         expect(result).toBe(4);
     });
 });
